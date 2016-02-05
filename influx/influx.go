@@ -165,7 +165,7 @@ func (f *influxPublisher) Publish(contentType string, content []byte, config map
 
 		pts[i] = client.Point{
 			Measurement: strings.Join(ns, "/"),
-			m.Timestamp(),
+			Time: m.Timestamp(),
 			Tags: tags,
 			Fields: map[string]interface{}{
 				"value": data,
