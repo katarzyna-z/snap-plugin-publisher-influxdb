@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 
@@ -38,10 +39,11 @@ import (
 
 const (
 	name                      = "influx"
-	version                   = 11
+	version                   = 12
 	pluginType                = plugin.PublisherPluginType
 	maxInt64                  = ^uint64(0) / 2
 	defaultTimestampPrecision = "s"
+	publishTimestamp          = "publish_timestamp"
 )
 
 // Meta returns a plugin meta data
@@ -167,9 +169,16 @@ func (f *influxPublisher) Publish(contentType string, content []byte, config map
 			}
 		}
 
+		//check if timestamp source is defined in plugin configuration and get timestamps which were assigned for metrics if needed
+		var timestamp time.Time
+		timestampSource, ok := config[publishTimestamp]
+		if (!ok) || (ok && timestampSource.(ctypes.ConfigValueBool).Value) {
+			timestamp = m.Timestamp()
+		}
+
 		pts[i] = client.Point{
 			Measurement: strings.Join(ns, "/"),
-			Time:        m.Timestamp(),
+			Time:        timestamp,
 			Tags:        tags,
 			Fields: map[string]interface{}{
 				"value": data,

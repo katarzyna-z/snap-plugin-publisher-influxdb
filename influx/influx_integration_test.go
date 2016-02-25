@@ -4,7 +4,7 @@
 http://www.apache.org/licenses/LICENSE-2.0.txt
 
 
-Copyright 2015 Intel Corporation
+Copyright 2015-2016 Intel Corporation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import (
 func TestInfluxPublish(t *testing.T) {
 	config := make(map[string]ctypes.ConfigValue)
 
-	Convey("snap plugin InfluxDB integration testing with Influx", t, func() {
+	Convey("snap plugin InfluxDB integration testing with Influx (without publish_timestamp)", t, func() {
 		var buf bytes.Buffer
 
 		config["host"] = ctypes.ConfigValueStr{Value: os.Getenv("SNAP_INFLUXDB_HOST")}
@@ -109,6 +109,154 @@ func TestInfluxPublish(t *testing.T) {
 			err := ip.Publish(plugin.SnapGOBContentType, buf.Bytes(), *cfg)
 			So(err, ShouldBeNil)
 		})
+	})
 
+	Convey("snap plugin InfluxDB integration testing with Influx (publish_timestamp set on true)", t, func() {
+		var buf bytes.Buffer
+
+		config["host"] = ctypes.ConfigValueStr{Value: os.Getenv("SNAP_INFLUXDB_HOST")}
+		config["port"] = ctypes.ConfigValueInt{Value: 8086}
+		config["user"] = ctypes.ConfigValueStr{Value: "root"}
+		config["password"] = ctypes.ConfigValueStr{Value: "root"}
+		config["database"] = ctypes.ConfigValueStr{Value: "test"}
+		config["publish_timestamp"] = ctypes.ConfigValueBool{Value: true}
+		config["debug"] = ctypes.ConfigValueBool{Value: false}
+		config["log-level"] = ctypes.ConfigValueStr{Value: "debug"}
+
+		ip := NewInfluxPublisher()
+		cp, _ := ip.GetConfigPolicy()
+		cfg, _ := cp.Get([]string{""}).Process(config)
+		tags := map[string]string{"zone": "red"}
+		labels := []core.Label{}
+
+		Convey("Publish integer metric", func() {
+			metrics := []plugin.PluginMetricType{
+				*plugin.NewPluginMetricType([]string{"foo"}, time.Now(), "127.0.0.1", tags, labels, 99),
+			}
+			buf.Reset()
+			enc := gob.NewEncoder(&buf)
+			enc.Encode(metrics)
+			err := ip.Publish(plugin.SnapGOBContentType, buf.Bytes(), *cfg)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("Publish float metric", func() {
+			metrics := []plugin.PluginMetricType{
+				*plugin.NewPluginMetricType([]string{"bar"}, time.Now(), "127.0.0.1", tags, labels, 3.141),
+			}
+			buf.Reset()
+			enc := gob.NewEncoder(&buf)
+			enc.Encode(metrics)
+			err := ip.Publish(plugin.SnapGOBContentType, buf.Bytes(), *cfg)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("Publish string metric", func() {
+			metrics := []plugin.PluginMetricType{
+				*plugin.NewPluginMetricType([]string{"qux"}, time.Now(), "127.0.0.1", tags, labels, "bar"),
+			}
+			buf.Reset()
+			enc := gob.NewEncoder(&buf)
+			enc.Encode(metrics)
+			err := ip.Publish(plugin.SnapGOBContentType, buf.Bytes(), *cfg)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("Publish boolean metric", func() {
+			metrics := []plugin.PluginMetricType{
+				*plugin.NewPluginMetricType([]string{"baz"}, time.Now(), "127.0.0.1", tags, labels, true),
+			}
+			buf.Reset()
+			enc := gob.NewEncoder(&buf)
+			enc.Encode(metrics)
+			err := ip.Publish(plugin.SnapGOBContentType, buf.Bytes(), *cfg)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("Publish multiple metrics", func() {
+			metrics := []plugin.PluginMetricType{
+				*plugin.NewPluginMetricType([]string{"foo"}, time.Now(), "127.0.0.1", tags, labels, 101),
+				*plugin.NewPluginMetricType([]string{"bar"}, time.Now(), "127.0.0.1", tags, labels, 5.789),
+			}
+			buf.Reset()
+			enc := gob.NewEncoder(&buf)
+			enc.Encode(metrics)
+			err := ip.Publish(plugin.SnapGOBContentType, buf.Bytes(), *cfg)
+			So(err, ShouldBeNil)
+		})
+	})
+	Convey("snap plugin InfluxDB integration testing with Influx (publish_timestamp set on false)", t, func() {
+		var buf bytes.Buffer
+
+		config["host"] = ctypes.ConfigValueStr{Value: os.Getenv("SNAP_INFLUXDB_HOST")}
+		config["port"] = ctypes.ConfigValueInt{Value: 8086}
+		config["user"] = ctypes.ConfigValueStr{Value: "root"}
+		config["password"] = ctypes.ConfigValueStr{Value: "root"}
+		config["database"] = ctypes.ConfigValueStr{Value: "test"}
+		config["publish_timestamp"] = ctypes.ConfigValueBool{Value: false}
+		config["debug"] = ctypes.ConfigValueBool{Value: false}
+		config["log-level"] = ctypes.ConfigValueStr{Value: "debug"}
+
+		ip := NewInfluxPublisher()
+		cp, _ := ip.GetConfigPolicy()
+		cfg, _ := cp.Get([]string{""}).Process(config)
+		tags := map[string]string{"zone": "red"}
+		labels := []core.Label{}
+
+		Convey("Publish integer metric", func() {
+			metrics := []plugin.PluginMetricType{
+				*plugin.NewPluginMetricType([]string{"foo"}, time.Now(), "127.0.0.1", tags, labels, 99),
+			}
+			buf.Reset()
+			enc := gob.NewEncoder(&buf)
+			enc.Encode(metrics)
+			err := ip.Publish(plugin.SnapGOBContentType, buf.Bytes(), *cfg)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("Publish float metric", func() {
+			metrics := []plugin.PluginMetricType{
+				*plugin.NewPluginMetricType([]string{"bar"}, time.Now(), "127.0.0.1", tags, labels, 3.141),
+			}
+			buf.Reset()
+			enc := gob.NewEncoder(&buf)
+			enc.Encode(metrics)
+			err := ip.Publish(plugin.SnapGOBContentType, buf.Bytes(), *cfg)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("Publish string metric", func() {
+			metrics := []plugin.PluginMetricType{
+				*plugin.NewPluginMetricType([]string{"qux"}, time.Now(), "127.0.0.1", tags, labels, "bar"),
+			}
+			buf.Reset()
+			enc := gob.NewEncoder(&buf)
+			enc.Encode(metrics)
+			err := ip.Publish(plugin.SnapGOBContentType, buf.Bytes(), *cfg)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("Publish boolean metric", func() {
+			metrics := []plugin.PluginMetricType{
+				*plugin.NewPluginMetricType([]string{"baz"}, time.Now(), "127.0.0.1", tags, labels, true),
+			}
+			buf.Reset()
+			enc := gob.NewEncoder(&buf)
+			enc.Encode(metrics)
+			err := ip.Publish(plugin.SnapGOBContentType, buf.Bytes(), *cfg)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("Publish multiple metrics", func() {
+			metrics := []plugin.PluginMetricType{
+				*plugin.NewPluginMetricType([]string{"foo"}, time.Now(), "127.0.0.1", tags, labels, 101),
+				*plugin.NewPluginMetricType([]string{"bar"}, time.Now(), "127.0.0.1", tags, labels, 5.789),
+			}
+			buf.Reset()
+			enc := gob.NewEncoder(&buf)
+			enc.Encode(metrics)
+			err := ip.Publish(plugin.SnapGOBContentType, buf.Bytes(), *cfg)
+			So(err, ShouldBeNil)
+		})
 	})
 }

@@ -62,6 +62,7 @@ func TestInfluxDBPlugin(t *testing.T) {
 			testConfig["user"] = ctypes.ConfigValueStr{Value: "root"}
 			testConfig["password"] = ctypes.ConfigValueStr{Value: "root"}
 			testConfig["database"] = ctypes.ConfigValueStr{Value: "test"}
+
 			cfg, errs := configPolicy.Get([]string{""}).Process(testConfig)
 			Convey("So config policy should process testConfig and return a config", func() {
 				So(cfg, ShouldNotBeNil)
@@ -69,6 +70,27 @@ func TestInfluxDBPlugin(t *testing.T) {
 			Convey("So testConfig processing should return no errors", func() {
 				So(errs.HasErrors(), ShouldBeFalse)
 			})
+
+			testConfig["publish_timestamp"] = ctypes.ConfigValueBool{Value: true}
+			cfg, errs = configPolicy.Get([]string{""}).Process(testConfig)
+
+			Convey("So config policy should process testConfig and return a config with publish_timestamp set on true", func() {
+				So(cfg, ShouldNotBeNil)
+			})
+			Convey("So testConfig processing should return no errors with publish_timestamp set on true", func() {
+				So(errs.HasErrors(), ShouldBeFalse)
+			})
+
+			testConfig["publish_timestamp"] = ctypes.ConfigValueBool{Value: false}
+			cfg, errs = configPolicy.Get([]string{""}).Process(testConfig)
+
+			Convey("So config policy should process testConfig and return a config with publish_timestamp set on false", func() {
+				So(cfg, ShouldNotBeNil)
+			})
+			Convey("So testConfig processing should return no errors with publish_timestamp set on false", func() {
+				So(errs.HasErrors(), ShouldBeFalse)
+			})
+
 			testConfig["port"] = ctypes.ConfigValueStr{Value: "8086"}
 			cfg, errs = configPolicy.Get([]string{""}).Process(testConfig)
 			Convey("So config policy should not return a config after processing invalid testConfig", func() {
