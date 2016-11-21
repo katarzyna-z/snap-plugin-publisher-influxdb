@@ -25,7 +25,7 @@ then run `mock-influxdb.sh`.
     - Snap task definition
 - [docker-compose.yml](docker-compose.yml)
     - A docker compose file which defines two linked containers
-        - "runner" is the container where snapteld is run from.  You will be dumped 
+        - "runner" is the container where snapteld is run from. You will be dumped 
         into a shell in this container after running 
         [run-mock-influxdb.sh](run-mock-influxdb.sh).  Exiting the shell will 
         trigger cleaning up the containers used in the example.
