@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/intelsdi-x/snap-plugin-publisher-influxdb.svg?branch=master)](https://travis-ci.org/intelsdi-x/snap-plugin-publisher-influxdb)
 
-# Snap publisher plugin - InfluxDB
+# Snap publisher plugin - InfluxDB 
 
 This plugin supports pushing metrics into an InfluxDB instance.
 
